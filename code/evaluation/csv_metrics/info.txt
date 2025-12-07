@@ -1,0 +1,83 @@
+0.0 - BraTS 2023 MEN Dataset ❌❌❌ 25.535 trainning data
+    0.0.1 - Normalized Dataset (same intensity for all pixels, not sufficient, input ranges from 0 to 15 and output from -1 to 1)
+        0.0.1.1 - Normalize each slice from -1 to 1 (using 0.5 mean and 0.5 std) ❌❌❌
+        0.0.1.2 - Scale each slice from -1 to 1 (using min and max of the image) ✅✅✅
+        0.0.1.3 - Post scale output to have same range than the input (min, max) ✅✅✅
+        0.0.1.4 - Post scale output to have same distribution (mean, std) ❌❌❌
+            0.0.1.4.1 - 0.0.1.4 + 0.1.3.1 ❌❌❌
+    0.0.2 - Normalize the brain of the Dataset per volume 🔵🔵🔵
+        0.0.2.1 - Compute the mean and std of the brain part that is not the tumor 🔵🔵🔵
+
+0.1 - Augment the Number of Parameters
+    0.1.1 - Improve the Decoder 📅📅📅
+        0.1.1.1 - 6 Layers Decoder, kernel size = 11 
+        0.1.1.2 - 0.1.3.1 + MultiMAE approach: using Transformers as decoders (d_dim=512, depth=2, heads=8, really good reconstruction, really bad segmentation) ✅✅✅
+            0.1.1.2.1 - Add Fuse layer between encoder and decoder (really good reconstruction, really bad segmentation)✅✅✅
+            0.1.1.2.2 - 0.1.1.2.1 + d_dim 256 (really good reconstruction, really bad segmentation)✅✅✅
+            0.1.1.2.3 - 0.1.1.2.1 + 0.4.9.2 ❌❌❌
+            0.1.1.2.4 - 0.1.1.2.3 + mu and logvar are computed using a mean acros patches instead of flattering ❌❌❌
+            0.1.1.2.5 - 0.1.1.2.4 + 10 L2, 5 SSIM, 1/100000 KL ✅✅✅ (64 + 200 + 400)
+            0.1.1.2.6 - 0.1.1.2.4 + 100 L2, 5 SSIM, 1/100000 KL + No prescaling ❌❌❌
+            0.1.1.2.7 - 0.1.1.2.6 + broader clipping (-20, 20) ❌❌❌
+
+    0.1.2 - Improve the Encoder 📅📅📅 (base dim=6, heads=8)
+        0.1.2.1 - 0.1.3.1 + dim 768, Depth 12, heads 12, 400 epochs (dice score: 0.244) ✅✅✅
+    0.1.3 - Improve the CapsNet 📅📅📅
+        0.1.3.1 - 0.4.2 + Remove CapsNet with the basic architecture (Linear) (0.228 dice score) ✅✅✅
+    0.1.4 - Add Gaussian Mixture Density Network 📅📅📅
+    0.1.5 - Add a GAN as a Decoder 📅📅📅
+    0.1.6 - Remove Gaussian Noise while trainning 📅📅📅
+    0.1.7 - ViT-VAE  
+
+0.2 - Add Different Normalization for Each Modality to Improve Consistency with Reconstruction
+    0.2.1 - Compute Max and Min values of the dataset to Normalize ❌❌❌
+    0.2.2 - Compute Mean and Std values of the dataset to Normalize ❌❌❌
+    0.2.3 - Compute Max and Min values of each brain to Normalize 
+    0.2.4 - Compute Mean and Std values of each brain to Normalize
+
+0.3 - Combinations of 0.0, 0.1, and 0.2
+    0.3.1 - 0.1.1.1 + 0.2.1 ❌❌❌, 
+    0.3.2 - 0.1.1.1 + 0.2.2 ❌❌❌
+    0.3.3 - 0.1.1.1 + 0.0.1.2 👀👀👀
+
+0.4 - Add Different Loss Functions
+    0.4.1 - Structure Similarity (5x + 0.5y) + 0.0.1 ❌❌❌
+    0.4.2 - SSIM (5x + 0.5y) + 0.0.1.2 (first decent result, 0.20 dice score) ✅✅✅
+    0.4.3 - SSIM (50x + 0.5y) + 0.0.1.2 + 0.1.1.1 (0.13 dice score) ✅✅✅
+    0.4.4 - SSIM (5x + 0.5y) + 0.0.1.2 + 0.1.1.1 👀👀👀
+    0.4.5 - SSIM (x + y) + 0.0.1.2 + 0.1.1.1 👀👀👀
+    0.4.6 - NO SSIM (x) + 0.0.1.2 👀👀👀
+    0.4.7 - SSIM (5x + 0.5y) + 0.0.1.3 (dice score: 0.214) ✅✅✅
+    0.4.8 - Histogram Loss 📅📅📅
+    0.4.9 - KL divergene Loss + 0.1.7 + 4.7 (128 z_dim)❌❌❌
+        0.4.9.1 - 0.4.9 KLD/10000 (128 z_dim)❌❌❌
+        0.4.9.2 - 0.4.9 + z_dim = 512 + KLD/10000 + variance clipping -10, 10 ❌❌❌
+
+    0.4.10 - Perceptual Loss 📅📅📅
+
+0.5 - Add Multimodality 
+    0.5.1 - 0.5 + 0.4.2 + 0.1.3.1 (bad results)✅✅✅
+    0.5.2 - Different decoder per each modality  (bad results)✅✅✅
+        0.5.2.1 - Batch size 64   (bad results)✅✅✅
+    0.5.3 - size of the input of the encoder [b, N*c, p*p], output encoder [b, N*c, dim] (bad results)✅✅✅
+
+0.6 - Add 3D Testing ✅✅✅
+
+0.7 - Add Data Augmentation 
+    0.7.1 - Add synthetic unhealthy data to the training (add loss, reconstruction - original) 
+        0.7.1.1 - 0.1.1.2.5 + 0.7.1 (alpha = 1) (mask loss 100) ❌❌❌
+            0.7.1.1.1 - mask loss 10  ✅✅✅
+        0.7.1.2 - 0.7.1.1 + alpha (x/max_epochs) ❌❌❌
+            0.7.1.2.1 - mask loss 10 ✅✅✅
+    0.7.2 - Finetune 0.1.1.2.1 with synthetic loss (alpha 1, mask loss 10) ✅✅✅
+
+0.8 - Add Explainability 📅📅📅
+    0.8.1 - GradCAM implementation
+
+0.9 - Add Data Weight 📅📅📅
+
+0.10 - Add MoE Approach 📅📅📅
+
+0.11 - Add Test Time Approach 📅📅📅
+
+0.12 - Add Ensemble Methods 📅📅📅

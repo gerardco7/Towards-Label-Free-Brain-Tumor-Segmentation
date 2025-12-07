@@ -1,0 +1,115 @@
+============================================================================================================================================================
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+                                                            BraTS 2025 Challenge
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+============================================================================================================================================================
+
+1.0 Preprocessing
+    1.0.1 Normalize dataset with mean and std of each volume and then min max normalization ✅✅✅
+    1.0.2 Normalize dataset with mean and std of each brain, keepign the background at zero (their actual value will be -1) ✅✅✅
+        1.0.2.1 1.2.1.3 ✅✅✅ (0.396, 0.176, 0.172)  Good reconstruction tho
+            1.0.2.1.1 1.2.1.3 + range [-1 , 1] ✅✅✅ (0.595, 0.371, 0.366)
+        1.0.2.2 1.2.1.4 + range [-1, 1] ✅✅✅ (0.588, 0.369, 0.365)
+            1.0.2.2.1 1.2.1.4 + no range ✅✅✅ (0.326, 0.117, 0.114)
+        1.0.2.3 1.2.1.1.1 + range [-1, 1] (2 epochs!!!, overfitting epochs más grandes)✅✅✅ (0.596, 0.394, 0.390)
+            1.0.2.3.1 1.2.1.1.1 + no range ✅✅✅ (0.473, 0.301, 0.297) 
+        1.0.2.4 ResNet-AE (rec + 100 ssim) + range [-1, 1] 🟨🟨🟨 
+            1.0.2.4.1 t2f ResNet-AE (rec + 100 ssim) + range [-1, 1] ❌❌❌  didn't converge
+            1.0.2.4.2 t2f ResNet-AE (rec + 100 ssim) ✅✅✅
+            1.0.2.4.3 t1c ResNet-AE (rec + 100 ssim) ✅✅✅
+             
+    1.0.3 Not scaled brain mask ✅✅✅ (0.594, 0.360, 0.356)
+
+    1.0.4 Normalize dataset with mean and std of each brain and then min max normalization 
+        1.0.4.1 t2f AE (rec + 100 ssim) 👀👀👀
+            1.0.4.1.1 t1c AE (rec + 100 ssim) 👀👀👀
+        1.0.4.2 t2f ResNet-AE (rec + 100 ssim) ✅✅✅
+            1.0.4.2.1 t1c ResNet-AE (rec + 100 ssim) ✅✅✅
+        1.0.4.3 t2f ViT-AE (rec + 100 ssim) 👀👀👀
+            1.0.4.3.1 t1c ViT-AE (rec + 100 ssim) 👀👀👀
+
+
+1.1 Architectures + 1.0.1 
+    1.1.1 Basic AE ❌❌❌ (la loss no bajaba)
+    1.1.2 ResNet Backbone ✅✅✅ (0.359, 0.318, 0.317)
+        1.1.2.1 ResNet34 + (rec + 100 ssim) ❌❌❌ 
+    1.1.3 VAE ❌❌❌ (se ha quedado en un minimo local y no ha aprendido a reconstruir, posiblemente porque la KL loss tenia demasiado peso)
+        1.1.3.1 Resnet Backbone ❌❌❌ 
+    1.1.4 Context VAE 🛠🛠🛠 
+    1.1.5 ViT-AE ✅✅✅ (0.386, 0.338, 0.336)
+        1.1.5.1 Bigger ViT-AE 768 dim (rec + 100 ssim) ✅✅✅
+        1.1.5.2 Bigger ViT-AE 768 dim, h 12, d 12 (rec + 100 ssim) ✅✅✅
+        1.1.5.3 Smaller ViT-AE 384 dim, h 8 d 6 (rec + 100 ssim) ✅✅✅
+    1.1.6 ViT-VAE 👀👀👀
+        1.1.6.1 Aggregate Across Patches, encoder output [batch, e_dim] instead of [batch, num_patches, e_dim] 👀👀👀
+    1.1.7 GradCAMCons ❌❌❌ 
+        1.1.7.1 Paper hyperparams and configuration 🛠🛠🛠
+    1.1.8 AMCons 🛠🛠🛠 
+    1.1.9 HistEq 🟨🟨🟨 (0.355)
+
+
+1.2 Loss Functions
+    1.2.1 SSIM Loss
+        1.2.1.1 Basic AE (rec + ssim) ❌❌❌  (la loss no bajaba)
+            1.2.1.1.1 (rec + 10 ssim)✅✅✅(0.450, 0.371, 0.369)
+            1.2.1.1.2 (rec + 100 ssim) ✅✅✅(0.582, 0.367, 0.363)
+        1.2.1.2 1.0.2 + VAE (rec + ssim + kl) ❌❌❌ 
+        1.2.1.3 ResNet (rec + ssim) ❌❌❌ 
+            1.2.1.3.1 (rec + 10 ssim) ✅✅✅ (0.579, 0.427, 0.423) 
+            1.2.1.3.2 (rec + 100 ssim) ✅✅✅ (0.623, 0.431, 0.427)
+            1.2.1.3.3 (rec + 1000 ssim) ✅✅✅
+        1.2.1.4 ViT-AE (rec + ssim) ✅✅✅ (0.409, 0.358, 0.357) 
+            1.2.1.4.1 (rec + 10 ssim) ✅✅✅ 
+            1.2.1.4.2 (rec + 100 ssim) ✅✅✅
+    1.2.2 Perceptual Loss 🛠🛠🛠 
+    1.2.3 KL Loss
+        1.2.3.1 VAE (rec + 1/10 kl) ❌❌❌ 
+        1.2.3.2 VAE (rec + 1/100 kl) ❌❌❌
+        1.2.3.3 VAE (rec + 1/1000 kl) ❌❌❌
+        1.2.3.4 VAE (rec + 1/10000 kl) ❌❌❌
+
+1.3 Explainability
+    1.3.1 GradCAM
+
+1.4 Multimodality
+    1.4.1 T2f models
+        1.4.1.1 AE (rec + 100 ssim) 👀👀👀
+        1.4.1.2 ResNet-AE (rec + 100 ssim) 🟨🟨🟨
+        1.4.1.3 ViT-VAE (rec + 100 ssim) 👀👀👀
+    1.4.2 All modalities
+        1.4.2.1 Multi-Channel Input Autoencoder (ViT-AE) ❌❌❌
+            1.4.2.1.1 ViT-AE z_dim=1024 ❌❌❌
+            1.4.2.1.2 ViT AE multichannel transformation  with 100 epochs ❌❌❌ with 200 epochs 🔵🔵🔵
+            1.4.2.1.3 ViT AE multichannel base ✅✅✅
+        1.4.2.2 Shared Encoder, Modality-Specific Decoders 🛠🛠🛠
+        1.4.2.3 Cross-Modality Autoencoder: Train the autoencoder to reconstruct one modality from another, or vice versa. 🛠🛠🛠
+        
+
+1.5 Data Augmentation
+    1.5.1 complete_minmax[-1,1] with 1.2.1.3.2  ✅✅✅
+    1.5.2 minmax[-1, 1] with 1.2.1.3.2 en GoAT 👀👀👀
+    1.5.3 complete_minmac[-1,1] with 1.2.1.3.2 en GoAT 👀👀👀
+
+1.6 Synthetic Generation
+
+1.7 Ensemble Methods
+
+1.8 Supervised models
+    1.8.1 nnunet
+        1.8.1.1 baseline nnUnet 2d 🟨🟨🟨
+
+1.9 Zscore
+    1.9.1 t1c ResNet 1.2.1.3.2 trained with transform zscore base 
+    1.9.2 t2f ResNet 1.2.1.3.2 trained with transform zscore base 
+
+
+Legend:
+✅✅✅ - Correctly executed
+🟨🟨🟨 - To be evaluated
+🔵🔵🔵 - Currently running
+❌❌❌ - Wrong execution/very bad results
+👀👀👀 - Developed but not executed
+🛠🛠🛠   - Developing
+📅📅📅 - Plan to develop in the near future
