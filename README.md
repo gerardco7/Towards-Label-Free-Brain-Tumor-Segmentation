@@ -1,4 +1,4 @@
-# Unsupervised Brain Tumor Anomaly Detection Framework
+# Towards Label-Free Brain Tumor Segmentation: Unsupervised Learning with Multimodal MRI
 
 This repository contains all the code used for **experiments, baselines, prototype implementations, and inference pipelines** for unsupervised anomaly detection on brain tumor MRI (BraTS / MEN).
 Because this project evolved through many iterations, the repo currently includes **well-structured components**, **experimental code**, and **chaotic early prototypes**, all preserved for **reproducibility**.
